@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 app.get('/', (req, res) => {
-    res.send("respond from app.js");
+    res.send("Ready to Serve🚀");
 });
 
 app.use('/api/auth', require('./src/routes/authRoutes'));

@@ -1,9 +1,13 @@
 const User = require('./../models/userModel');
+const Follower = require('./../models/followerModel');
+const FollowRequest = require('./../models/followRequestModel');
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs').promises;
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
+const { BASE_URL } = require('../constants');
+const { log } = require('console');
 
 const profileStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -85,7 +89,10 @@ const UpdateProfileInfo = async(req, res) => {
 
 const GetProfileInfo = async(req, res) => {
     try {
+        const token = req.headers.authorization.split(" ")[1];
         const userId = req.params.uid || req.params.userId;
+        let isFollowing = false;
+        let isFollowRequested = false;
 
         if(!mongoose.Types.ObjectId.isValid(userId)){
             return res.status(400).json({message:'Invalid user ID'});
@@ -96,17 +103,33 @@ const GetProfileInfo = async(req, res) => {
         if(!user){
             return res.status(404).json({message:'User not found'});
         }
+
+        if(req.params.uid){
+            const following = await Follower.findOne({followerId:req.params.userId, userId:userId});
+            if(following){
+                isFollowing = true;
+            } else if(user.isPrivate) {
+                const followRequested = await FollowRequest.findOne({requester:req.params.userId, recipient:userId});
+                if(followRequested){
+                    isFollowRequested = true;
+                }
+            }
+        }
+        
         res.json({
             id:user._id,
             username:user.username,
             name:user.name,
             isVerified:user.isVerified,
             profession:user.profession,
-            profileUri:user.profileImageUrl,
+            profileUri:`${BASE_URL}/api/user/profile/image/${token}/${user.profileImageUrl}`,
             bio:user.bio,
             postCount:user.postCount,
             followerCount:user.followerCount,
-            followingCount:user.followingCount
+            followingCount:user.followingCount,
+            isFollowing:isFollowing,
+            isPrivate:user.isPrivate,
+            isFollowRequested:isFollowRequested
         })
     } catch (error) {
         console.error('Error in GetProfileInfo:', error);
