@@ -3,13 +3,18 @@ const mongoose = require('mongoose');
 const followerSchema = new mongoose.Schema({
     followerId: {
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User' 
+        ref: 'User',
+        required: true 
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User'
+        ref: 'User',
+        required: true
     },
-    // Other follower fields...
-}, {timestamps:true});
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
 
-const Follower = mongoose.model('Follower', followerSchema);
+module.exports = mongoose.model('Follower', followerSchema);
