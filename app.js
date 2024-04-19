@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 require("dotenv").config();
-const {PORT} = require("./src/constants")
+const {PORT, BASE_URL} = require("./src/constants")
 const db_connect = require("./src/config/db_connect");
 const cors = require('cors');
 
@@ -25,6 +25,7 @@ app.use('/api/user', require('./src/routes/userRoutes'));
 
 
 app.listen(PORT, () =>{
-    console.log(`app.js is listening at port ${PORT}`)
+    console.log(`app.js is listening at port ${PORT}`);
+    console.log(BASE_URL);
 });
 

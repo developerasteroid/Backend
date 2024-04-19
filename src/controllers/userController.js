@@ -164,7 +164,7 @@ const getFollowing = async(req, res) => {
         res.json(data);
 
     } catch (error) {
-        console.error('Error in getFollowers:', error);
+        console.error('Error in getFollowing:', error);
         res.status(500).json({message: 'Internal server error'});
     }
 }
@@ -279,6 +279,44 @@ const unFollowUser = async(req, res) => {
     }
 }
 
+const removeFollower = async(req, res) => {
+    try {
+        const { targetUserId } = req.body;
+        const userId = req.params.userId;
+
+        if(!targetUserId){
+            return res.status(400).json({message: 'targetUserId is missing.'});
+        }
+
+        if(!mongoose.Types.ObjectId.isValid(targetUserId)){
+            return res.status(400).json({message: 'Invalid target id'});
+        }
+
+        if(targetUserId.toString() == userId.toString()){
+            return res.status(400).json({message: 'target user id cannot be self id.'});
+        }
+
+        const deleteFollower = await Follower.findOneAndDelete({followerId:targetUserId, userId:userId});
+
+        if(!deleteFollower){
+            return res.status(404).json({message: 'Follower record not found. target user is not following you.'});
+        }
+        // Decrement followerCount of self
+        await User.findByIdAndUpdate(userId, { $inc: { followerCount: -1 } });
+        // Decrement followingCount of target user
+        await User.findByIdAndUpdate(targetUserId, { $inc: { followingCount: -1 } });
+
+        await Notification.findOneAndDelete({recipient:userId, sender:targetUserId, type:'follow', referenceId:deleteFollower._id});
+
+        return res.status(200).json({message: 'follower removed Successfully'});
+
+
+    } catch (error) {
+        console.error('Error in removeFollower:', error);
+        res.status(500).json({message: 'Internal server error'});
+    }
+}
+
 
 const removeFollowRequest = async(req, res) => {
     try {
@@ -353,5 +391,35 @@ const acceptFollowRequest = async(req, res) => {
     }
 }
 
+const declineFollowRequest = async(req, res) => {
+    try {
+        const { targetUserId } = req.body;
+        const userId = req.params.userId;
 
-module.exports = {searchUser, followUser, unFollowUser, removeFollowRequest, acceptFollowRequest, getFollowers, getFollowing};
+        if(!targetUserId){
+            return res.status(400).json({message: 'targetUserId is missing.'});
+        }
+
+        if(!mongoose.Types.ObjectId.isValid(targetUserId)){
+            return res.status(400).json({message: 'Invalid target id'});
+        }
+
+        if(targetUserId.toString() == userId.toString()){
+            return res.status(400).json({message: 'target user id cannot be self id.'});
+        }
+
+        const deleteFollowRequest = await FollowRequest.findOneAndDelete({requester:targetUserId, recipient:userId});
+        if(!deleteFollowRequest){
+            return res.status(404).json({message: 'Follow request does not exist'});
+        }
+        await Notification.findOneAndDelete({recipient:userId, sender:targetUserId, type:'followRequest', referenceId:deleteFollowRequest._id});
+
+        return res.status(200).json({message: 'Follow request declined Successfully'});
+    } catch (error) {
+        console.error('Error in declineFollowRequest:', error);
+        res.status(500).json({message: 'Internal server error'});
+    }
+}
+
+
+module.exports = {searchUser, followUser, unFollowUser, removeFollower, removeFollowRequest, acceptFollowRequest, declineFollowRequest, getFollowers, getFollowing};
