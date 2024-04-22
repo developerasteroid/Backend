@@ -1,5 +1,5 @@
 const DB_NAME = "Socio-G";
-const IP_ADDRESS = '172.21.0.206';
+const IP_ADDRESS = '192.168.196.114';
 const PORT = 9907;
 const BASE_URL = `http://${IP_ADDRESS}:${PORT}`;
 

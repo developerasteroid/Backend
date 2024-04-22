@@ -4,6 +4,7 @@ const FollowRequest = require('./../models/followRequestModel');
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs').promises;
+// const dftFS = require('fs');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const { BASE_URL } = require('../constants');
@@ -20,18 +21,39 @@ const profileStorage = multer.diskStorage({
 
 const uploadProfile = multer({ storage: profileStorage});
 
+const DeleteFile = async(filePath) => {
+    // Delete the file
+    try {
+        await fs.unlink(filePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 
 
 const updateProfileImage = async(req, res) => {
     try {
         const userId = req.params.userId;
+        const path = "src\\uploads\\profiles\\";
         // Handle file upload
         if (!req.file) {
             const { image } = req.body;
             if (image == null) {
                 try {
-                    let updatedUser = await User.findByIdAndUpdate(userId, {profileImageUrl: null} , { new: true });
+                    // let user = await User.findById(userId);
+                    // if(user){
+                    //     console.log(user.profileImageUrl);
+                    //     if(user.profileImageUrl){
+                            
+                    //     }
+                    // }
+                    let updatedUser = await User.findByIdAndUpdate(userId, {profileImageUrl: null});
                     if(updatedUser){
+                        if(updatedUser.profileImageUrl){
+                            await DeleteFile(path + updatedUser.profileImageUrl); 
+                        }
                         return res.json({message:'User Profile Image updated'});
                     }
                     return res.status(401).send({
@@ -49,8 +71,11 @@ const updateProfileImage = async(req, res) => {
 
         const profileImageUrl = req.file.filename;
         try {
-            let updatedUser = await User.findByIdAndUpdate(userId, {profileImageUrl} , { new: true });
+            let updatedUser = await User.findByIdAndUpdate(userId, {profileImageUrl});
             if(updatedUser){
+                if(updatedUser.profileImageUrl){
+                    await DeleteFile(path + updatedUser.profileImageUrl); 
+                }
                 return res.json({message:'User Profile Image updated'});
             }
             return res.status(401).send({
