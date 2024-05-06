@@ -8,11 +8,12 @@ const fs = require('fs').promises;
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const { BASE_URL } = require('../constants');
-const { log } = require('console');
+const resizeImage = require('../utils/imageResize');
+
 
 const profileStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './src/uploads/profiles/');
+        cb(null, './src/uploads/temp/');
     },
     filename: function (req, file, cb) {
         cb(null, 'IMG-' + uuidv4().replace(/-/g, '') + path.extname(file.originalname));
@@ -70,6 +71,8 @@ const updateProfileImage = async(req, res) => {
         }
 
         const profileImageUrl = req.file.filename;
+        await resizeImage( req.file.path, "src/uploads/profiles/" + req.file.filename, 320);
+        await DeleteFile(req.file.path);
         try {
             let updatedUser = await User.findByIdAndUpdate(userId, {profileImageUrl});
             if(updatedUser){
