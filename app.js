@@ -5,6 +5,7 @@ const {PORT, BASE_URL} = require("./src/constants")
 const db_connect = require("./src/config/db_connect");
 const cors = require('cors');
 
+// app.use(require('express-status-monitor')());
 app.use(cors());
 
 app.use(express.json());
@@ -20,6 +21,10 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/user', require('./src/routes/userRoutes'));
+app.use('/api/post', require('./src/routes/postRoutes'));
+app.use('/api/location', require('./src/routes/locationRoutes'));
+app.use('/api/admin', require('./src/routes/adminRoutes'));
+
 
 
 
