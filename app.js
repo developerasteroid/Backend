@@ -24,6 +24,8 @@ app.use('/api/user', require('./src/routes/userRoutes'));
 app.use('/api/post', require('./src/routes/postRoutes'));
 app.use('/api/location', require('./src/routes/locationRoutes'));
 app.use('/api/admin', require('./src/routes/adminRoutes'));
+app.use('/api/bardapi', require('./src/routes/bardApiRoutes'));
+
 
 
 
