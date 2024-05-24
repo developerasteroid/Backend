@@ -319,7 +319,7 @@ const servePosts = async(req, res) => {
         const data = [];
         const following = await Follower.find({followerId: userId}).select('userId');
         const followingList = following.map((follow) => follow.userId);
-        const posts = await Post.find({author: {$in: followingList}}).populate('author').sort({ createdAt: -1 });;
+        const posts = await Post.find({author: {$in: followingList}}).populate('author').sort({ createdAt: -1 });
         for(let post of posts){
             let content = "";
             if(post.category == 'video'){
@@ -337,7 +337,60 @@ const servePosts = async(req, res) => {
                 width: post.width,
                 height: post.height,
                 liked: (isLiked ? true : false),
-                caption: post.description
+                caption: post.description,
+                likeCount: post.likeCount,
+                commentCount: post.commentCount
+            })
+        }
+        res.json(data);
+    } catch (error) {
+        console.error('Error in servePosts:', error);
+        res.status(500).json({message: 'Internal server error'});
+    }
+}
+
+const serveUserPosts = async(req, res) => {
+    try {
+        const userId = req.params.userId;
+        const uid = req.params.uid;
+        const token = req.headers.authorization.split(" ")[1];
+
+        if(!uid){
+            return res.status(400).json({message:'uid is missing'});
+        }
+
+        if(!mongoose.Types.ObjectId.isValid(uid)){
+            return res.status(400).json({message:'Invalid uid'});
+        }
+
+        const user = await User.findById(userId);
+
+        if(!user){
+            return res.status(404).json({message:'User not found'});
+        }
+
+        const data = [];
+        const posts = await Post.find({author: uid}).populate('author').sort({ createdAt: -1 });
+        for(let post of posts){
+            let content = "";
+            if(post.category == 'video'){
+                content = `${BASE_URL}/api/post/content/${token}/video/${post.content}`;
+            } else {
+                content = `${BASE_URL}/api/post/content/${token}/image/${post.content}`;
+            }
+            const isLiked = await Like.findOne({userId, postId:post._id});
+            data.push({
+                _id:post._id,
+                name:post.author.username,
+                profile: `${BASE_URL}/api/user/profile/image/${token}/${post.author.profileImageUrl}`,
+                content: content,
+                category: post.category,
+                width: post.width,
+                height: post.height,
+                liked: (isLiked ? true : false),
+                caption: post.description,
+                likeCount: post.likeCount,
+                commentCount: post.commentCount
             })
         }
         res.json(data);
@@ -390,4 +443,4 @@ const servePostComment = async(req, res) => {
     }
 }
 
-module.exports = {uploadPostFile, handleMulterUploadPostFileError, uplaodPost, deletePost, likePost, disLikePost, commentPost, servePosts, servePostContent};
+module.exports = {uploadPostFile, handleMulterUploadPostFileError, uplaodPost, deletePost, likePost, disLikePost, commentPost, servePosts, serveUserPosts, servePostContent};

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleWare = require('../middlewares/authMiddleWare');
-const { uplaodPost, uploadPostFile, handleMulterUploadPostFileError, deletePost, likePost, disLikePost, commentPost, servePosts, servePostContent } = require('../controllers/postController');
+const { uplaodPost, uploadPostFile, handleMulterUploadPostFileError, deletePost, likePost, disLikePost, commentPost, servePosts, servePostContent, serveUserPosts } = require('../controllers/postController');
 const uriMiddleWare = require('../middlewares/uriMiddleWare');
 
 router.post('/upload', authMiddleWare, uploadPostFile.single('file'), handleMulterUploadPostFileError, uplaodPost);
@@ -10,6 +10,7 @@ router.get('/like/:postId', authMiddleWare, likePost);
 router.get('/dislike/:postId', authMiddleWare, disLikePost);
 router.post('/comment', authMiddleWare, commentPost);
 router.get('/serve', authMiddleWare, servePosts);
+router.get('/serve/:uid', authMiddleWare, serveUserPosts);
 router.get('/content/:token/:category/:filename', uriMiddleWare, servePostContent);
 
 // router.post('/login', LoginUser);

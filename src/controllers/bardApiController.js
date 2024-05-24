@@ -15,6 +15,7 @@ const bardApiHandler = async(req, res) => {
         if(!req.query.ques){
             return res.status(400).json({ message: "bad request" });
         }
+        console.log("Ai Bot Recieved Msg");
         let messages = [{ content: req.query.ques }];
         
 
