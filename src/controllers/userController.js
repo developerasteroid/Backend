@@ -3,6 +3,7 @@ const User = require('./../models/userModel');
 const Follower = require('./../models/followerModel');
 const Notification = require('./../models/notificationModel');
 const FollowRequest = require('./../models/followRequestModel');
+const Report = require('./../models/reportModel');
 const mongoose = require('mongoose');
 
 
@@ -421,5 +422,38 @@ const declineFollowRequest = async(req, res) => {
     }
 }
 
+const reportUser = async(req, res) => {
+    try {
+        const selfUID = req.params.userId;
+        const {userId, reason} = req.body;
+        if(!userId){
+            return res.status(400).json({message: 'user id is missing'});
+        }
+        if(!reason){
+            return res.status(400).json({message: 'reason is missing'});
+        }
+        if(!mongoose.Types.ObjectId.isValid(userId)){
+            return res.status(400).json({message:'Invalid userId'});
+        }
 
-module.exports = {searchUser, followUser, unFollowUser, removeFollower, removeFollowRequest, acceptFollowRequest, declineFollowRequest, getFollowers, getFollowing};
+        const user = await User.findById(userId);
+        if(!user){
+            return res.status(404).json({message: 'User not exist'});
+        }
+        
+
+        
+
+        let report = new Report({userId: selfUID, type: 'user', referenceId: userId, reason});
+        await report.save();
+
+        res.status(200).json({message: 'Reported user successfully'});
+        
+    } catch (error) {
+        console.error('Error in reportUser:', error);
+        res.status(500).json({message: 'Internal server error'});
+    }
+}
+
+
+module.exports = {searchUser, followUser, unFollowUser, removeFollower, removeFollowRequest, acceptFollowRequest, declineFollowRequest, getFollowers, getFollowing, reportUser};

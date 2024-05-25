@@ -4,6 +4,7 @@ const Like = require('./../models/likeModel');
 const Comment = require('./../models/commentModel');
 const Notification = require('./../models/notificationModel');
 const Follower = require('./../models/followerModel');
+const Report = require('./../models/reportModel');
 const multer = require('multer');
 const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
@@ -311,6 +312,47 @@ const commentPost = async(req, res) => {
     }
 }
 
+const deleteCommentPost = async(req, res) => {
+    try {
+        const userId = req.params.userId;
+        const {commentId} = req.body;
+
+        if(!commentId){
+            return res.status(400).json({message: 'comment id is missing'});
+        }
+        if(!mongoose.Types.ObjectId.isValid(commentId)){
+            return res.status(400).json({message: 'Invalid comment id'});
+        }
+
+        let comment = await Comment.findById(commentId);
+
+        if(!comment){
+            return res.status(404).json({message: 'Comment does not exist.'});
+        }
+
+        if(comment.userId.toString() != userId.toString()){
+            return res.status(403).json({message: 'You are not authorized to delete this comment'});
+        }
+
+        await Comment.findByIdAndDelete(commentId);
+
+        let post = await Post.findByIdAndUpdate(comment.postId, { $inc: { commentCount: -1 }});
+        
+        if(post){
+            await Notification.findOneAndDelete({recipient:post.author, sender:userId, type:'comment', referenceId:commentId});
+        }
+
+        return res.status(200).json({message: "Deleted the Comment Successfully"});
+
+
+    } catch (error) {
+        console.error('Error in deleteCommentPost:', error);
+        res.status(500).json({message: 'Internal server error'});
+    }
+}
+ 
+
+
 const servePosts = async(req, res) => {
     try {
         const userId = req.params.userId;
@@ -433,9 +475,32 @@ const servePostContent = async(req, res) => {
 
 const servePostComment = async(req, res) => {
     try {
-        const postId = req.body.postId;
+        const token = req.headers.authorization.split(" ")[1];
+        const postId = req.params.postId;
+        if(!postId){
+            return res.status(400).json({message: 'post id is missing'});
+        }
+        if(!mongoose.Types.ObjectId.isValid(postId)){
+            return res.status(400).json({message:'Invalid postId'});
+        }
+
         const data = [];
-        const comment = await Comment.find({postId}).populate('userId');
+        const comments = await Comment.find({postId}).populate('userId').sort({ createdAt: -1 });
+
+        for (let comment of comments){
+            data.push({
+                _id: comment._id,
+                postId: comment.postId,
+                username: comment.userId.username,
+                // name: comment.userId.name,
+                userId: comment.userId._id,
+                profileImageUrl: `${BASE_URL}/api/user/profile/image/${token}/${comment.userId.profileImageUrl}`,
+                content: comment.content,
+                createdAt: comment.createdAt
+            })
+        }
+        // console.log(comments);
+        res.json(data);
         
     } catch (error) {
         console.error('Error in servePostComment:', error);
@@ -443,4 +508,35 @@ const servePostComment = async(req, res) => {
     }
 }
 
-module.exports = {uploadPostFile, handleMulterUploadPostFileError, uplaodPost, deletePost, likePost, disLikePost, commentPost, servePosts, serveUserPosts, servePostContent};
+const reportPost = async(req, res) => {
+    try {
+        const userId = req.params.userId;
+        const {postId, reason} = req.body;
+        if(!postId){
+            return res.status(400).json({message: 'post id is missing'});
+        }
+        if(!reason){
+            return res.status(400).json({message: 'reason is missing'});
+        }
+        if(!mongoose.Types.ObjectId.isValid(postId)){
+            return res.status(400).json({message:'Invalid postId'});
+        }
+
+        let post = await Post.findById(postId);
+
+        if(!post){
+            return res.status(404).json({message: 'Post does not exist.'});
+        }
+
+        let report = new Report({userId, type: 'post', referenceId: postId, reason});
+        await report.save();
+
+        res.status(200).json({message: 'Reported post successfully'});
+        
+    } catch (error) {
+        console.error('Error in reportPost:', error);
+        res.status(500).json({message: 'Internal server error'});
+    }
+}
+
+module.exports = {uploadPostFile, handleMulterUploadPostFileError, uplaodPost, deletePost, likePost, disLikePost, commentPost, deleteCommentPost, servePosts, serveUserPosts, servePostContent, servePostComment, reportPost};

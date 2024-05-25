@@ -3,7 +3,7 @@ const router = express.Router();
 const {GetProfileInfo, GetProfileImage, uploadProfile, updateProfileImage, UpdateProfileInfo} = require('./../controllers/profileController');
 const authMiddleWare = require('../middlewares/authMiddleWare');
 const uriMiddleWare = require('../middlewares/uriMiddleWare');
-const { searchUser, followUser, unFollowUser, removeFollower, removeFollowRequest, acceptFollowRequest, declineFollowRequest, getFollowers, getFollowing } = require('../controllers/userController');
+const { searchUser, followUser, unFollowUser, removeFollower, removeFollowRequest, acceptFollowRequest, declineFollowRequest, getFollowers, getFollowing, reportUser } = require('../controllers/userController');
 
 
 //route to handel user registeration
@@ -26,6 +26,8 @@ router.get('/get/followers/:uid', authMiddleWare, getFollowers);
 router.get('/get/followers', authMiddleWare, getFollowers);
 router.get('/get/following/:uid', authMiddleWare, getFollowing);
 router.get('/get/following', authMiddleWare, getFollowing);
+
+router.post('/report', authMiddleWare, reportUser);
 
 
 
