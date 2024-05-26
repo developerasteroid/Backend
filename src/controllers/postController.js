@@ -83,7 +83,7 @@ const uplaodPost = async(req, res) => {
                 await DeleteFile(req.file.path);
                 return res.status(400).json({message: 'Unsupported Image Type'});
             }
-            let info = await resizeImage( req.file.path, "src/uploads/images/" + req.file.filename, 480);
+            let info = await resizeImage( req.file.path, "src/uploads/images/" + req.file.filename, 720);
             await DeleteFile(req.file.path);
             width = info.width;
             height = info.height;
@@ -115,7 +115,7 @@ const uplaodPost = async(req, res) => {
             }
 
 
-            let info = await resizeVideo(req.file.path, "src/uploads/videos/" + req.file.filename, 480);
+            let info = await resizeVideo(req.file.path, "src/uploads/videos/" + req.file.filename, 620);
             width = info.streams[0].width;
             height = info.streams[0].height;
             await DeleteFile(req.file.path);
@@ -373,6 +373,7 @@ const servePosts = async(req, res) => {
             data.push({
                 _id:post._id,
                 name:post.author.username,
+                isVerified:post.author.isVerified,
                 profile: `${BASE_URL}/api/user/profile/image/${token}/${post.author.profileImageUrl}`,
                 content: content,
                 category: post.category,
@@ -381,7 +382,8 @@ const servePosts = async(req, res) => {
                 liked: (isLiked ? true : false),
                 caption: post.description,
                 likeCount: post.likeCount,
-                commentCount: post.commentCount
+                commentCount: post.commentCount,
+                createdAt: post.createdAt
             })
         }
         res.json(data);
@@ -424,6 +426,7 @@ const serveUserPosts = async(req, res) => {
             data.push({
                 _id:post._id,
                 name:post.author.username,
+                isVerified:post.author.isVerified,
                 profile: `${BASE_URL}/api/user/profile/image/${token}/${post.author.profileImageUrl}`,
                 content: content,
                 category: post.category,
@@ -432,7 +435,8 @@ const serveUserPosts = async(req, res) => {
                 liked: (isLiked ? true : false),
                 caption: post.description,
                 likeCount: post.likeCount,
-                commentCount: post.commentCount
+                commentCount: post.commentCount,
+                createdAt: post.createdAt
             })
         }
         res.json(data);
