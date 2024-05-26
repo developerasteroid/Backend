@@ -61,6 +61,9 @@ const LoginUser = async(req, res) => {
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Invalid Password' });
         }
+        if(user.isBlocked){
+            return res.status(403).json({ message: 'Your account is blocked' });
+        }
 
         // Generate JWT token
         const token = jwt.sign({ userId: user._id }, process.env.jwt_secret, { expiresIn: '30d' });
