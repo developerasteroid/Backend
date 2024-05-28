@@ -7,7 +7,7 @@ const fs = require('fs').promises;
 // const dftFS = require('fs');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
-const { BASE_URL } = require('../constants');
+const { BASE_URL, APP_NAME } = require('../constants');
 const resizeImage = require('../utils/imageResize');
 
 
@@ -130,6 +130,10 @@ const GetProfileInfo = async(req, res) => {
 
         if(!user){
             return res.status(404).json({message:'User not found'});
+        }
+
+        if(user.isBlocked){
+            return res.status(404).json({message:`User is Blocked by ${APP_NAME}`});
         }
 
         if(req.params.uid){

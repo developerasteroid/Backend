@@ -113,7 +113,7 @@ const searchUser = async(req, res) => {
             })
         }
 
-        const resultData = data.filter(obj=> obj.uid.toString() !== req.params.userId);
+        const resultData = data.filter(obj=> (obj.uid.toString() !== req.params.userId && obj.isBlocked == false));
 
         
         return res.json(resultData); 

@@ -1,27 +1,22 @@
 const mongoose = require('mongoose');
 
-const reportSchema = new mongoose.Schema({
+const enquirySchema = new mongoose.Schema({
     userId:{
         type:mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    type:{
-        type: String,
-        enum: ['post', 'user'],
+    email:{
+        type:String,
         required: true
     },
-    referenceId:{
-        type:mongoose.Schema.Types.ObjectId,
-        required: true
-    },
-    reason:{
+    content:{
         type: String,
         required: true
     },
     status:{
         type: String,
-        enum: ['processing', 'resolved', 'declined'],
-        default: 'processing'
+        enum: ['pending', 'responded'],
+        default: 'pending'
     },
     read:{
         type:Boolean,
@@ -33,4 +28,4 @@ const reportSchema = new mongoose.Schema({
     }
 },{versionKey:false});
 
-module.exports = mongoose.model('Report', reportSchema);
+module.exports = mongoose.model('Enquiry', enquirySchema);
