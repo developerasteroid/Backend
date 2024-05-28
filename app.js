@@ -3,6 +3,7 @@ const app = express();
 require("dotenv").config();
 const {PORT, BASE_URL} = require("./src/constants")
 const db_connect = require("./src/config/db_connect");
+const SendMail = require('./src/utils/mailService');
 const cors = require('cors');
 
 // app.use(require('express-status-monitor')());

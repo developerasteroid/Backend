@@ -232,13 +232,50 @@ const getVerifiedUsersList = async(req, res) => {
             return res.json({users, totalPages})
         }
     } catch (error) {
-        console.error('Error in getUsersList:', error);
+        console.error('Error in getVerifiedUsersList:', error);
         res.status(500).json({message: 'Internal server error'});
     }
 }
 
 
+const getAllReport = async(req, res) => {
+    try {
+        const reports = await Report.find({status: 'processing'});
 
+        await Report.updateMany({read: false}, {read: true});
+
+        res.json(reports);
+    } catch (error) {
+        console.error('Error in getAllReport:', error);
+        res.status(500).json({message: 'Internal server error'});
+    }
+}
+
+const getPostReport = async(req, res) => {
+    try {
+        const reports = await Report.find({status: 'processing', type: 'post'});
+
+        await Report.updateMany({read: false, type: 'post'}, {read: true});
+
+        res.json(reports);
+    } catch (error) {
+        console.error('Error in getPostReport:', error);
+        res.status(500).json({message: 'Internal server error'});
+    }
+}
+
+const getUserReport = async(req, res) => {
+    try {
+        const reports = await Report.find({status: 'processing', type: 'user'});
+
+        await Report.updateMany({read: false, type: 'user'}, {read: true});
+
+        res.json(reports);
+    } catch (error) {
+        console.error('Error in getUserReport:', error);
+        res.status(500).json({message: 'Internal server error'});
+    }
+}
 
 const temporaryBitmojiStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -303,4 +340,4 @@ const deleteBitmoji = async(req, res) => {
     }
 }
 
-module.exports = {adminLogin, getApplicationInformation, getUsersList, verifyUser, unverifyUser, getVerifiedUsersList, uploadBitmoji, addNewBitmoji, deleteBitmoji};
+module.exports = {adminLogin, getApplicationInformation, getUsersList, verifyUser, unverifyUser, getVerifiedUsersList, getAllReport, getPostReport, getUserReport, uploadBitmoji, addNewBitmoji, deleteBitmoji};

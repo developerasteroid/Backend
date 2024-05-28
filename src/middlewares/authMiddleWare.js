@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const User = require('./../models/userModel');
 
 
-module.exports = (req, res, next) => {
+module.exports = async(req, res, next) => {
     try {
       const token = req.headers.authorization.split(" ")[1];
       if (!token) {
@@ -15,6 +16,19 @@ module.exports = (req, res, next) => {
       if(!mongoose.Types.ObjectId.isValid(decodedToken.userId)){
         return res.status(401).send({
           message:'Invalid user ID',
+          success: false,
+        });
+      }
+      const user = await User.findById(decodedToken.userId);
+      if(!user){
+        return res.status(401).send({
+          message: "Auth failed",
+          success: false,
+        });
+      }
+      if(user.isBlocked){
+        return res.status(401).send({
+          message: "Auth failed",
           success: false,
         });
       }
